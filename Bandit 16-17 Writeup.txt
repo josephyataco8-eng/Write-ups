@@ -70,6 +70,10 @@ It is required that the file where we store our credential has only read and wri
 permissions for us (600). Otherwise, someone else could use our credentials. Assuming 
 that the file where we store the credential is called "credenciales_RSA".
 
+we use the following command:
+
+chmod 600 credenciales_RSA
+
 We use the following command to log in:
 
 ssh bandit17@bandit.labs.overthewire.org -i credenciales_RSA -p 2220
@@ -84,3 +88,4 @@ And that’s it — we are now logged into bandit17.
 
 
 bandit17@bandit:~$
+
