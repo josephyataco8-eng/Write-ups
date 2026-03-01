@@ -6,7 +6,9 @@ nmap -sT -p 31000-32000
 
 Options:
 
--sT: TCP scan technique. Why? There are many scanning techniques, but we choose this one because we do not have privileges in this laboratory, and -sT allows us to perform a scan without special privileges.
+-sT: TCP scan technique. Why? There are many scanning techniques, but we choose this 
+one because we do not have privileges in this laboratory, and -sT allows us to perform 
+a scan without special privileges.
 
 -p: specify the port range.
 
@@ -26,7 +28,9 @@ nmap -sV -p 31046,31518,31691,31790,31960 localhost
 
 Options:
 
--sV: version/service detection scan. Why? It allows us to identify the services and see which ones offer SSL (Secure Sockets Layer). In addition, it does not require root privileges.
+-sV: version/service detection scan. Why? It allows us to identify the services 
+and see which ones offer SSL (Secure Sockets Layer). In addition, it does not 
+require root privileges.
 
 -p: specify the ports.
 
@@ -39,7 +43,8 @@ PORT      STATE SERVICE     VERSION
 31790/tcp open  ssl/unknown
 31960/tcp open  echo
 
-We now know that ports 31518 and 31790 provide SSL services, so we try to connect to the service using the following commands:
+We now know that ports 31518 and 31790 provide SSL services, so we try to 
+connect to the service using the following commands:
 
 1. printf "password\n" | openssl s_client -connect localhost:31518 -quiet
 
@@ -61,7 +66,9 @@ s_client: an OpenSSL mode that tells OpenSSL to act as a client.
 
 This private key will allow us to prove our identity without providing a password.
 
-It is required that the file where we store our credential has only read and write permissions for us (600). Otherwise, someone else could use our credentials. Assuming that the file where we store the credential is called "credenciales_RSA".
+It is required that the file where we store our credential has only read and write
+permissions for us (600). Otherwise, someone else could use our credentials. Assuming 
+that the file where we store the credential is called "credenciales_RSA".
 
 We use the following command to log in:
 
@@ -74,5 +81,6 @@ Options:
 -i: select an identity file.
 
 And that’s it — we are now logged into bandit17.
+
 
 bandit17@bandit:~$
