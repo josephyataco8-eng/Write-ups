@@ -1,91 +1,161 @@
-Bandit 16-17 Writeup
+# Bandit Level 16 → 17 Write-up
 
-First, we scan the ports in the range 31000–32000 using the following nmap command:
+Platform: OverTheWire  
+Challenge: Bandit Level 16 → 17
 
-nmap -sT -p 31000-32000
+---
 
-Options:
+## Objective
 
--sT: TCP scan technique. Why? There are many scanning techniques, but we choose this 
-one because we do not have privileges in this laboratory, and -sT allows us to perform 
-a scan without special privileges.
+Retrieve the password for the next level by identifying the correct service running on a specific port and authenticating with the obtained credentials.
 
--p: specify the port range.
+---
 
-Output (relevant part only):
+## 1. Port Scanning
 
+First, we scan the ports in the range **31000–32000** using `nmap`.
+
+```bash
+nmap -sT -p 31000-32000 localhost
+```
+
+### Options
+
+- **-sT** : TCP connect scan.  
+  This scan is used because we do not have special privileges in this environment.  
+  Unlike SYN scans, `-sT` works without root privileges.
+
+- **-p** : specifies the port range.
+
+### Output (relevant part)
+
+```
 Not shown: 996 closed tcp ports (conn-refused)
+
 PORT      STATE SERVICE
 31046/tcp open  unknown
 31518/tcp open  unknown
 31691/tcp open  unknown
 31790/tcp open  unknown
 31960/tcp open  unknown
+```
 
-Since we now know which ports are open, we use the following command:
+Several ports are open, so the next step is identifying the running services.
 
+---
+
+## 2. Service Detection
+
+We run another `nmap` scan to determine the service versions.
+
+```bash
 nmap -sV -p 31046,31518,31691,31790,31960 localhost
+```
 
-Options:
+### Options
 
--sV: version/service detection scan. Why? It allows us to identify the services 
-and see which ones offer SSL (Secure Sockets Layer). In addition, it does not 
-require root privileges.
+- **-sV** : enables service/version detection.  
+  This allows us to identify which services are running and determine whether any of them use **SSL**.
 
--p: specify the ports.
+- **-p** : specifies the ports to scan.
 
-Output (relevant part only):
+### Output (relevant part)
 
+```
 PORT      STATE SERVICE     VERSION
 31046/tcp open  echo
 31518/tcp open  ssl/echo
 31691/tcp open  echo
 31790/tcp open  ssl/unknown
 31960/tcp open  echo
+```
 
-We now know that ports 31518 and 31790 provide SSL services, so we try to 
-connect to the service using the following commands:
+The scan shows that **ports 31518 and 31790 provide SSL services**.
 
-1. printf "password\n" | openssl s_client -connect localhost:31518 -quiet
+---
 
-2. printf "password\n" | openssl s_client -connect localhost:31790 -quiet
+## 3. Connecting to the SSL Service
 
-printf: prints text.
+We attempt to connect to the SSL services using **OpenSSL**.
 
-"|": passes the output of the previous command to the next one.
+### Attempt 1
 
-s_client: an OpenSSL mode that tells OpenSSL to act as a client.
+```bash
+printf "password\n" | openssl s_client -connect localhost:31518 -quiet
+```
 
-1. It does not return any credential.
+### Attempt 2
 
-2. It returns an encrypted RSA private key:
+```bash
+printf "password\n" | openssl s_client -connect localhost:31790 -quiet
+```
 
+### Command Explanation
+
+- **printf** : prints the password and sends it to the next command.
+- **| (pipe)** : passes the output of one command as input to another.
+- **openssl s_client** : makes OpenSSL act as an SSL/TLS client.
+- **-connect** : specifies the host and port.
+- **-quiet** : suppresses unnecessary output.
+
+### Results
+
+- **Port 31518** → No useful output.  
+- **Port 31790** → Returns an **RSA private key**.
+
+Example output:
+
+```
 -----BEGIN RSA PRIVATE KEY-----
 ...
 -----END RSA PRIVATE KEY-----
+```
 
-This private key will allow us to prove our identity without providing a password.
+This private key can be used for **SSH authentication**.
 
-It is required that the file where we store our credential has only read and write
-permissions for us (600). Otherwise, someone else could use our credentials. Assuming 
-that the file where we store the credential is called "credenciales_RSA".
+---
 
-we use the following command:
+## 4. Preparing the Private Key
 
+SSH requires that private key files have strict permissions.  
+Otherwise, SSH will refuse to use them for security reasons.
+
+Assuming the key is saved as:
+
+```
+credenciales_RSA
+```
+
+We change the permissions:
+
+```bash
 chmod 600 credenciales_RSA
+```
 
-We use the following command to log in:
+This ensures that only the owner can **read and write** the file.
 
+---
+
+## 5. SSH Authentication
+
+Now we authenticate using the obtained private key.
+
+```bash
 ssh bandit17@bandit.labs.overthewire.org -i credenciales_RSA -p 2220
+```
 
-Options:
+### Options
 
--p: specify the port.
+- **-i** : specifies the identity file (private key).
+- **-p** : specifies the SSH port.
 
--i: select an identity file.
+---
 
-And that’s it — we are now logged into bandit17.
+## Result
 
+Successful login to **Bandit Level 17**.
 
+```
 bandit17@bandit:~$
+```
 
